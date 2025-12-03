@@ -182,7 +182,6 @@
             </div>
         );
 
-        // --- Typewriter Component ---
         const Typewriter = ({ words, speed = 150, deleteSpeed = 80, pause = 2000 }) => {
             const [index, setIndex] = useState(0);
             const [subIndex, setSubIndex] = useState(0);
@@ -223,14 +222,9 @@
         // 3. FEATURE COMPONENTS
         // ==========================================
 
-        // --- 3D PARTICLE SYSTEM HERO (REFACTORED with useRef) ---
         const ParticleHero = ({ shapeType, particleColor, scaleFactor }) => {
             const containerRef = useRef(null);
             const particlesRef = useRef(null);
-            const rendererRef = useRef(null);
-            const sceneRef = useRef(null);
-            const cameraRef = useRef(null);
-            const frameIdRef = useRef(null);
             
             const getShapePositions = (type, count = 2000) => {
                 const positions = new Float32Array(count * 3);
@@ -250,20 +244,17 @@
 
             useEffect(() => {
                 if (!containerRef.current) return;
-                
-                // Use refs to store scene objects so they persist without state updates causing re-renders
-                const scene = new THREE.Scene();
                 const w = containerRef.current.clientWidth;
                 const h = containerRef.current.clientHeight;
-                const camera = new THREE.PerspectiveCamera(75, w / h, 0.1, 1000);
-                camera.position.z = 8;
-                const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
                 
-                renderer.setSize(w, h);
-                renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-                
-                containerRef.current.innerHTML = ''; // Clear previous
-                containerRef.current.appendChild(renderer.domElement);
+                const _scene = new THREE.Scene();
+                const _camera = new THREE.PerspectiveCamera(75, w / h, 0.1, 1000);
+                _camera.position.z = 8;
+                const _renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+                _renderer.setSize(w, h);
+                _renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+                containerRef.current.innerHTML = ''; 
+                containerRef.current.appendChild(_renderer.domElement);
                 
                 const particleCount = 2000;
                 const geometry = new THREE.BufferGeometry();
@@ -276,23 +267,19 @@
                     opacity: 0.8,
                     blending: THREE.AdditiveBlending
                 });
-                const particles = new THREE.Points(geometry, material);
-                scene.add(particles);
+                const _particles = new THREE.Points(geometry, material);
+                _scene.add(_particles);
                 
-                // Store in refs for access in other effects/cleanup
-                sceneRef.current = scene;
-                cameraRef.current = camera;
-                rendererRef.current = renderer;
-                particlesRef.current = particles;
+                particlesRef.current = _particles;
 
-                // Animation Loop
+                let frameId;
                 const animate = () => {
-                    frameIdRef.current = requestAnimationFrame(animate);
-                    if (particles) {
-                        particles.rotation.y += 0.002;
-                        particles.rotation.z += 0.001;
+                    frameId = requestAnimationFrame(animate);
+                    if (_particles) {
+                        _particles.rotation.y += 0.002;
+                        _particles.rotation.z += 0.001;
                     }
-                    renderer.render(scene, camera);
+                    _renderer.render(_scene, _camera);
                 };
                 animate();
 
@@ -300,19 +287,18 @@
                     if (!containerRef.current) return;
                     const width = containerRef.current.clientWidth;
                     const height = containerRef.current.clientHeight;
-                    camera.aspect = width / height;
-                    camera.updateProjectionMatrix();
-                    renderer.setSize(width, height);
+                    _camera.aspect = width / height;
+                    _camera.updateProjectionMatrix();
+                    _renderer.setSize(width, height);
                 };
                 window.addEventListener('resize', handleResize);
 
                 return () => {
                     window.removeEventListener('resize', handleResize);
-                    cancelAnimationFrame(frameIdRef.current);
-                    renderer.dispose();
-                    // containerRef is handled by React, no need to removeChild manually usually if innerHTML cleared
+                    cancelAnimationFrame(frameId);
+                    _renderer.dispose();
                 };
-            }, []); // Run once on mount
+            }, []); 
 
             useEffect(() => {
                 if (particlesRef.current) {
@@ -330,7 +316,6 @@
             return <div className="w-full h-full" ref={containerRef} />;
         };
 
-        // --- Hero Section ---
         const Hero = ({ onOpenAssessment, onNavClick }) => {
             const [shape, setShape] = useState('sphere');
             const [color, setColor] = useState('#4ADE80');
@@ -394,7 +379,7 @@
                         </motion.div>
                         <div className="text-center lg:text-left max-w-2xl">
                             <motion.h2 initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="text-xl md:text-2xl font-semibold text-white mb-2 tracking-wide drop-shadow-lg">香港首個 AIQ 系統研發者</motion.h2>
-                            <motion.h1 initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.2 }} className="text-5xl md:text-7xl font-semibold text-white mb-6 leading-tight drop-shadow-lg">IQ 決定你的起點，<br />AIQ 決定你能走 <br/><GradientText>多遠。</GradientText></motion.h1>
+                            <motion.h1 initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.2 }} className="text-5xl md:text-7xl font-semibold text-white mb-6 leading-tight drop-shadow-lg">別只是使用 AI，<br />要與 AI <GradientText>共生</GradientText>。</motion.h1>
                             <motion.p initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.4 }} className="text-lg md:text-xl text-white mb-10 leading-relaxed font-light drop-shadow-md">香港 2026 年的核心競爭力標準，<br className="md:inline hidden"/>為您的機構建立 <span className="text-white font-semibold">AIQ (人工智能商數)</span> 系統。</motion.p>
                             <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.6 }} className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start items-center">
                                 <ButtonPrimary icon={Zap} onClick={() => onOpenAssessment('')}>快速 AIQ 評估</ButtonPrimary>
@@ -424,139 +409,163 @@
             );
         };
 
-        const AssessmentModal = ({ isOpen, onClose, initialEmail }) => {
-            const [step, setStep] = useState(1);
-            const [formData, setFormData] = useState({ name: '', email: '', businessType: '', role: '', aiUsage: [], frequency: '', challenges: [], awareness: '' });
-            const [result, setResult] = useState(null);
-
-            const AI_TOOLS = ['ChatGPT / Claude', 'Midjourney / Stable Diffusion', 'Microsoft Copilot', 'Notion AI', 'Google Gemini', 'Poe', 'Perplexity', 'Jasper', 'Canva Magic / Adobe Firefly', 'GitHub Copilot', '公司內部 AI 系統', '完全沒有使用'];
-            const CHALLENGES = ['缺乏相關技能', '擔心資料外洩', '沒有預算', '管理層不支持', '不知道從何開始'];
-            
-            useEffect(() => { if (isOpen && initialEmail) setFormData(prev => ({ ...prev, email: initialEmail })); }, [isOpen, initialEmail]);
-            const handleChange = (field, value) => setFormData(prev => ({ ...prev, [field]: value }));
-            const toggleSelection = (field, item) => setFormData(prev => { const list = prev[field] || []; return list.includes(item) ? { ...prev, [field]: list.filter(i => i !== item) } : { ...prev, [field]: [...list, item] }; });
-
-            const calculateResult = () => {
-                let score = 50; 
-                if (formData.frequency === 'daily') score += 20; else if (formData.frequency === 'weekly') score += 10; else if (formData.frequency === 'rarely') score -= 10;
-                if (formData.aiUsage.includes('完全沒有使用')) score -= 20; else score += (formData.aiUsage.length * 5);
-                if (formData.challenges.includes('擔心資料外洩')) score -= 5;
-                if (['management', 'middle'].includes(formData.role)) { if (formData.awareness === 'none') score -= 10; if (formData.awareness === 'full') score += 10; }
-                score = Math.max(10, Math.min(95, score));
-                let grade = 'C', urgency = '中度 (Moderate)', summary = '';
-                if (score >= 80) { grade = 'A'; urgency = '優化階段 (Optimization)'; summary = '您的基礎良好，已具備一定的 AIQ。'; } 
-                else if (score >= 60) { grade = 'B'; urgency = '加速階段 (Acceleration)'; summary = '您已有使用經驗，但可能缺乏統一策略。'; } 
-                else if (score >= 40) { grade = 'C'; urgency = '警戒階段 (Warning)'; summary = '您處於 AI 轉型的起步階段。'; } 
-                else { grade = 'D'; urgency = '極度緊急 (Critical)'; summary = '您的機構在 AIQ 準備度上嚴重落後。'; }
-                setResult({ score, grade, urgency, summary, timeToQualify: '3-6 個月' });
-                setStep(2);
-            };
-
-            const handleSendResult = () => {
-                const message = `你好 Yess AI 團隊，\n\n我完成了 AIQ 初步評估，結果如下：\n\n姓名: ${formData.name}\nEmail: ${formData.email}\n機構: ${formData.businessType}\n職位: ${formData.role}\n頻率: ${formData.frequency}\n工具: ${formData.aiUsage.join(', ')}\n挑戰: ${formData.challenges.join(', ')}\n管理層AI意識: ${formData.awareness}\n\n-- 評估結果 --\n分數: ${result.score}\n等級: ${result.grade}\n急迫性: ${result.urgency}`;
-                const encodedMessage = encodeURIComponent(message);
-                window.open(`https://wa.me/85294392236?text=${encodedMessage}`, '_blank');
-                onClose();
-            };
-
-            if (!isOpen) return null;
+        // --- Hook Section (RESTORED) ---
+        const HookSection = () => {
+            const [activeMode, setActiveMode] = useState('culture'); 
 
             return (
-                <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
-                    <motion.div key='backdrop' initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} className="absolute inset-0 bg-black/80 backdrop-blur-sm" />
-                    <motion.div key='content' initial={{ scale: 0.9, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0, y: 20 }} className="relative bg-[#0B0E14] border border-[#4ADE80]/30 w-full max-w-3xl rounded-3xl overflow-hidden shadow-[0_0_50px_rgba(74,222,128,0.15)] flex flex-col max-h-[90vh]">
-                        <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-white z-10"><X size={24} /></button>
-                        {step === 1 ? (
-                            <div className="flex-1 overflow-y-auto p-8 md:p-10">
-                                <div className="flex items-center gap-3 mb-6"><div className="p-3 bg-[#4ADE80]/10 rounded-xl text-[#4ADE80]"><ShieldCheck size={28} /></div><div><h3 className="text-2xl font-semibold text-white">AIQ 深度診斷 (2 min)</h3><p className="text-[#94A3B8] text-sm">讓我們更精準地了解您的 AI 成熟度。</p></div></div>
-                                <div className="space-y-6">
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <div><label className="text-xs text-[#94A3B8] mb-1 block">您的姓名</label><input type="text" className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#4ADE80]" onChange={e => handleChange('name', e.target.value)} /></div>
-                                        <div><label className="text-xs text-[#94A3B8] mb-1 block">電郵地址</label><input type="email" value={formData.email} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#4ADE80]" onChange={e => handleChange('email', e.target.value)} /></div>
-                                        <div><label className="text-xs text-[#94A3B8] mb-1 block">機構類型</label><select className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#4ADE80]" onChange={e => handleChange('businessType', e.target.value)}><option value="">請選擇...</option><option value="school">學校 (K12/Higher Ed)</option><option value="ngo">非牟利機構 (NGO)</option><option value="sme">中小企 (SME)</option><option value="enterprise">大型企業 (Enterprise)</option><option value="startup">初創企業 (Startup)</option><option value="government">政府/公共機構</option></select></div>
-                                        <div><label className="text-xs text-[#94A3B8] mb-1 block">您的職位</label><select className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#4ADE80]" onChange={e => handleChange('role', e.target.value)}><option value="">請選擇...</option><option value="management">管理層 / 校長 / 董事</option><option value="middle">部門主管 / 主任</option><option value="staff">前線員工 / 教師</option><option value="it">IT / 技術支援</option></select></div>
-                                    </div>
-                                    {['management', 'middle'].includes(formData.role) && (<div className="p-4 bg-[#06B6D4]/10 rounded-xl border border-[#06B6D4]/30"><label className="text-sm font-bold text-[#06B6D4] mb-3 block flex items-center gap-2"><Users size={16} /> 管理層專屬：您是否清楚員工的 AI 使用狀況 (人數/工具/頻率)？</label><div className="grid grid-cols-3 gap-3"> {[{l:'完全掌握', v:'full'}, {l:'部分了解', v:'partial'}, {l:'完全不清楚', v:'none'}].map(opt => (<button key={opt.v} onClick={() => handleChange('awareness', opt.v)} className={`py-2 rounded-lg text-sm border transition-all ${formData.awareness === opt.v ? 'bg-[#06B6D4] text-[#0B0E14] border-[#06B6D4] font-bold' : 'bg-black/20 border-white/10 text-gray-400 hover:bg-white/10'}`}>{opt.l}</button>))} </div></div>)}
-                                    <div><label className="text-xs text-[#94A3B8] mb-2 block">目前使用的 AI 工具 (可多選)</label><div className="flex flex-wrap gap-2">{AI_TOOLS.map(tool => (<button key={tool} onClick={() => toggleSelection('aiUsage', tool)} className={`px-3 py-2 rounded-lg text-sm border transition-all ${formData.aiUsage.includes(tool) ? 'bg-[#4ADE80]/20 border-[#4ADE80] text-[#4ADE80]' : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10'}`}>{tool}</button>))}</div></div>
-                                    <div><label className="text-xs text-[#94A3B8] mb-2 block">AI 使用頻率</label><div className="grid grid-cols-3 gap-3"> {[{l:'幾乎每天',v:'daily'}, {l:'每週幾次',v:'weekly'}, {l:'很少/從不',v:'rarely'}].map(opt => (<button key={opt.v} onClick={() => handleChange('frequency', opt.v)} className={`py-3 rounded-xl text-sm border transition-all ${formData.frequency === opt.v ? 'bg-[#06B6D4]/20 border-[#06B6D4] text-[#06B6D4]' : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10'}`}>{opt.l}</button>))} </div></div>
-                                    <div><label className="text-xs text-[#94A3B8] mb-2 block">目前最大的阻礙 (可多選)</label><div className="flex flex-wrap gap-2">{CHALLENGES.map(c => (<button key={c} onClick={() => toggleSelection('challenges', c)} className={`px-3 py-2 rounded-lg text-sm border transition-all ${formData.challenges.includes(c) ? 'bg-red-500/20 border-red-500 text-red-400' : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10'}`}>{c}</button>))}</div></div>
-                                    <ButtonPrimary onClick={calculateResult} className="w-full justify-center mt-4" icon={ScanSearch} disabled={!formData.email || !formData.businessType}>查看詳細分析</ButtonPrimary>
-                                </div>
-                            </div>
-                        ) : (
-                            <div className="p-8 md:p-10 text-center relative overflow-hidden h-full flex flex-col justify-center">
-                                <div className={`absolute inset-0 opacity-10 bg-gradient-to-b ${['A','B'].includes(result.grade) ? 'from-[#4ADE80] to-transparent' : 'from-red-500 to-transparent'}`} />
-                                <div className="relative z-10">
-                                    <h3 className="text-xl font-semibold text-[#94A3B8] mb-6 uppercase tracking-widest">Assessment Report</h3>
-                                    <div className="flex justify-center items-end gap-2 mb-6"><div className="text-7xl font-semibold text-white leading-none">{result.score}</div><div className="text-xl text-[#94A3B8] mb-2">/ 100</div></div>
-                                    <div className="grid grid-cols-2 gap-4 mb-6"><div className="bg-white/5 rounded-2xl p-4 border border-white/10"><div className="text-xs text-[#94A3B8] uppercase tracking-wider mb-1">AIQ 等級</div><div className={`text-4xl font-semibold ${['A','B'].includes(result.grade) ? 'text-[#4ADE80]' : 'text-red-400'}`}>{result.grade}</div></div><div className="bg-white/5 rounded-2xl p-4 border border-white/10"><div className="text-xs text-[#94A3B8] uppercase tracking-wider mb-1">行動急迫性</div><div className="text-lg font-semibold text-white flex items-center justify-center h-full pb-2 gap-2">{!['A'].includes(result.grade) && <AlertTriangle size={16} className="text-yellow-500"/>}{result.urgency.split(' ')[0]}</div></div></div>
-                                    <div className="mb-6 p-4 bg-white/5 rounded-xl border border-white/10 text-left text-xs text-[#94A3B8] leading-relaxed">
-                                        <h4 className="text-white font-bold mb-2 flex items-center gap-2 text-sm"><Info size={14} className="text-[#4ADE80]"/> 評分標準：AI Readiness Quotient (AI-RQ)</h4>
-                                        <p className="mb-2">此評分基於 UNESCO 認可的組織準備度框架，評估四大維度：</p>
-                                        <ul className="grid grid-cols-2 gap-x-2 gap-y-1 mb-3 list-disc pl-4"><li><span className="text-white">Strategy (策略)</span>: 願景與影響力</li><li><span className="text-white">Execution (執行)</span>: 變革與人才</li><li><span className="text-white">Innovation (創新)</span>: 實驗與顛覆</li><li><span className="text-white">Enabling (賦能)</span>: 數據與倫理</li></ul>
-                                        <p className="text-[#06B6D4]">目標分數為 64+ (AI-First)。低於 32 分代表存在重大落差 (Major Gaps)，急需建立 AIQ 系統以避免被邊緣化。</p>
-                                    </div>
-                                    <div className="bg-white/5 rounded-2xl p-6 border border-white/10 mb-8 text-left"><p className="text-white mb-4 leading-relaxed">{result.summary}</p></div>
-                                    <ButtonPrimary className="w-full justify-center" onClick={handleSendResult} icon={CalendarCheck2}>獲取完整報告與專家建議</ButtonPrimary>
-                                </div>
-                            </div>
-                        )}
-                    </motion.div>
-                </div>
-            );
-        };
-
-        // --- Pages ---
-        const AboutPage = ({ onOpenAssessment }) => (
-            <div className="pt-32 pb-20 min-h-screen"><div className="container mx-auto px-6 text-center max-w-4xl"><h1 className="text-5xl font-semibold text-white mb-8">關於我們</h1><p className="text-[#94A3B8] text-lg mb-8">Yess AI 致力於協助香港企業與學校建立可持續的 AI 文化。我們不僅提供工具培訓，更注重思維轉型與合規治理。</p><ButtonPrimary onClick={() => onOpenAssessment('')} icon={Zap}>AIQ 快速評估</ButtonPrimary></div></div>
-        );
-        const PrivacyPage = () => (
-            <div className="pt-32 pb-20 min-h-screen"><div className="container mx-auto px-6 max-w-3xl text-white"><h1 className="text-4xl font-bold mb-8">隱私政策</h1><div className="space-y-6 text-[#94A3B8]"><p>生效日期：2025年1月1日</p><p>Yess AI 非常重視您的隱私。本政策說明我們如何收集、使用和保護您的個人資料。</p><h2 className="text-xl text-white font-semibold">1. 資料收集</h2><p>我們僅收集您在評估表單或訂閱中主動提供的資料（如姓名、電郵、職位）。</p><h2 className="text-xl text-white font-semibold">2. 資料使用</h2><p>您的資料僅用於提供評估報告、聯絡回訪及發送電子報。我們不會將資料出售給第三方。</p><h2 className="text-xl text-white font-semibold">3. 資料安全</h2><p>我們採用符合行業標準的安全措施來保護您的數據。</p></div></div></div>
-        );
-        const TermsPage = () => (
-            <div className="pt-32 pb-20 min-h-screen"><div className="container mx-auto px-6 max-w-3xl text-white"><h1 className="text-4xl font-bold mb-8">服務條款</h1><div className="space-y-6 text-[#94A3B8]"><p>歡迎使用 Yess AI 網站。使用本網站即表示您同意以下條款。</p><h2 className="text-xl text-white font-semibold">1. 服務內容</h2><p>本網站提供的 AIQ 評估結果僅供參考，不構成正式的法律或商業建議。</p><h2 className="text-xl text-white font-semibold">2. 知識產權</h2><p>本網站的所有內容（文字、圖像、代碼）均歸 Yess AI 所有。</p><h2 className="text-xl text-white font-semibold">3. 免責聲明</h2><p>Yess AI 不對因使用本網站資訊而導致的任何直接或間接損失負責。</p></div></div></div>
-        );
-
-        // --- Sections ---
-        const HookSection = () => <section id="hook" className="py-24 bg-[#0B0E14] relative z-10"><div className="container mx-auto px-6"><SectionHeading subtitle="The Reality Check" title="培訓 vs. 文化" /><div className="max-w-4xl mx-auto bg-white/5 border border-white/10 rounded-3xl p-12"><div className="flex gap-8 items-center"><div className="flex-1 space-y-4"><h3 className="text-2xl font-semibold text-white">建立 <GradientText>AIQ 文化</GradientText></h3><p className="text-[#94A3B8]">我們植入整套機構運作系統：從<h1 className="text-lg font-semibold text-white mb-2 inline">AI 政策制定 (AI Policy Making)</h1>、倫理規範到工作流重整。</p></div></div></div></div></section>;
-        const AIQDimensions = () => <section id="framework" className="py-24 bg-[#0B0E14] relative z-10"><div className="container mx-auto px-6 relative z-10"><SectionHeading subtitle="The Framework" title="未來競爭力的四大重點" /><div className="grid grid-cols-1 md:grid-cols-2 gap-6">{[{title:"1. 認知與理解", desc:"理解 AI 的基本原理與邊界。"}, {title:"2. 工具應用能力", desc:"熟練使用工具完成實際工作。"}, {title:"3. 倫理與判斷力", desc:"識別偏見、保護數據隱私。"}, {title:"4. 創新與流程優化", desc:"主動思考「怎樣用 AI 重塑工作」。"}].map((c,i)=><div key={i} className="bg-white/5 p-8 rounded-2xl border border-white/10"><h3 className="text-xl font-semibold text-white mb-3">{c.title}</h3><p className="text-[#94A3B8]">{c.desc}</p></div>)}</div></div></section>;
-        const GlobalMap = () => <section className="py-24 bg-[#05070a] border-y border-white/5 relative z-10"><div className="container mx-auto px-6"><div className="flex lg:flex-row flex-col items-center gap-16"><div className="lg:w-1/2"><div className="flex items-center gap-3 text-[#06B6D4] mb-4"><Globe2 size={24} /><span className="font-semibold tracking-wider uppercase">Global Standards</span></div><h2 className="text-4xl font-semibold text-white mb-6">國際標準，香港落地</h2><div className="space-y-6"><div className="flex gap-4"><div><h1 className="text-white font-semibold text-lg">UNESCO AI 標準 (UNESCO AI Framework)</h1><p className="text-[#94A3B8]">全球權威機構已定義 AI 素養標準。</p></div></div><div className="flex gap-4"><div><h4 className="text-white font-semibold text-lg">Yess AI 本地化實踐</h4><p className="text-[#94A3B8]">將國際標準轉化為符合香港教育局政策與商業文化的實戰方案。</p></div></div></div></div><div className="lg:w-1/2"><div className="text-center text-[#06B6D4]">Interactive Graph Placeholder</div></div></div></div></section>;
-        const Roadmap = () => <section className="py-24 bg-[#0B0E14] relative z-10"><div className="container mx-auto px-6"><SectionHeading subtitle="Roadmap" title="實施路線圖" /><div className="text-center text-[#94A3B8]">5 Steps Roadmap Visual</div></div></section>;
-        
-        const Solutions = () => {
-            const [activeTab, setActiveTab] = useState(0);
-            const tabs = [
-                { id: 0, name: "學校 Schools", icon: School, title: "智慧校園：從合規到賦能", content: "不僅滿足教育局架構。我們協助校方建立安全的 AI 沙盒與政策（管控），並協助申請<h1 class='seo-h1'>學校 AI 課程資助 (School AI Funding)</h1>，讓教師能安心實驗教學創新，學生能掌握未來核心技能（成長），共同打造具備 AIQ 的智慧校園。" },
-                { id: 1, name: "NGO", icon: HeartHandshake, title: "科技與人文共融", content: "在資源受限下實現最大影響力。我們提供合規的數據隱私治理（管控），同時推動<h1 class='seo-h1'>NGO AI 應用 (NGO AI Application)</h1>賦能前線社工利用 AI 自動化繁瑣行政（成長），讓團隊將更多時間與心力回歸到受助者身上。" },
-                { id: 2, name: "中小企 SME", icon: Briefcase, title: "全員創新的增長引擎", content: "超越單純的降本增效。我們協助建立標準化且安全的 AI 工作流（管控），並專注於<h1 class='seo-h1'>中小企 AI 轉型 (SME AI Transformation)</h1>，讓每位員工都能成為利用 AI 解決業務瓶頸的「超級個體」（成長），讓中小企具備大企業的作戰能力。" },
-                { id: 3, name: "大型企業", icon: Building2, title: "治理與轉型並行", content: "從防禦性風控轉向進攻性轉型。我們協助建立企業級私有化模型與治理框架（管控），消除安全隱患，同時推動跨部門的 AI 協作文化（成長），讓創新成為企業的日常 DNA。" },
-            ];
-            return (
-                <section id="solutions" className="py-24 bg-[#05070a] scroll-mt-20">
+                <section id="hook" className="py-24 bg-[#0B0E14] relative z-10">
                 <div className="container mx-auto px-6">
-                    <SectionHeading subtitle="Solutions" title="為您的領域量身打造" />
-                    <div className="flex flex-wrap justify-center gap-4 mb-12">{tabs.map((tab) => <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`px-6 py-3 rounded-full flex items-center gap-2 border ${activeTab === tab.id ? "bg-[#4ADE80]/10 border-[#4ADE80] text-[#4ADE80]" : "bg-transparent border-white/10 text-[#94A3B8]"}`}>{React.createElement(tab.icon, { size: 18 })} {tab.name}</button>)}</div>
-                    <div className="max-w-4xl mx-auto bg-white/5 border border-white/10 rounded-3xl p-10 text-center"><h3 className="text-3xl font-semibold text-white mb-6">{tabs[activeTab].title}</h3><p className="text-xl text-[#94A3B8]" dangerouslySetInnerHTML={{__html: tabs[activeTab].content}}></p></div>
+                    <SectionHeading subtitle="The Reality Check" title="培訓 vs. 文化" />
+                    
+                    <div className="flex justify-center mb-12">
+                    <div className="bg-white/5 p-1 rounded-full flex relative backdrop-blur-sm border border-white/10">
+                        <motion.div 
+                        className="absolute top-1 bottom-1 rounded-full bg-gradient-to-r from-[#4ADE80] to-[#06B6D4]"
+                        initial={false}
+                        animate={{ 
+                            left: activeMode === 'training' ? '4px' : '50%', 
+                            width: 'calc(50% - 4px)' 
+                        }}
+                        transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                        />
+                        <button onClick={() => setActiveMode('training')} className={`relative z-10 px-8 py-3 rounded-full text-sm font-semibold transition-colors w-40 ${activeMode === 'training' ? 'text-[#0B0E14]' : 'text-white'}`}>舊式培訓</button>
+                        <button onClick={() => setActiveMode('culture')} className={`relative z-10 px-8 py-3 rounded-full text-sm font-semibold transition-colors w-40 ${activeMode === 'culture' ? 'text-[#0B0E14]' : 'text-white'}`}>Yess AIQ</button>
+                    </div>
+                    </div>
+
+                    <div className="max-w-4xl mx-auto">
+                    <AnimatePresence mode="wait">
+                        {activeMode === 'training' ? (
+                        <motion.div key="training" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} className="bg-white/5 border border-white/10 rounded-3xl p-8 md:p-12 grayscale">
+                            <div className="flex flex-col md:flex-row gap-8 items-center">
+                            <div className="flex-1 space-y-4">
+                                <h3 className="text-2xl font-semibold text-gray-400">只教工具操作</h3>
+                                <p className="text-gray-500">傳統課程只教員工如何開啟 ChatGPT 或 Midjourney。<br/><br/><strong className="text-red-400">結果：</strong> 員工私下亂用、資料外洩風險高、工作效率無實質提升。</p>
+                            </div>
+                            <div className="w-full md:w-1/3 flex justify-center"><div className="w-32 h-32 rounded-full bg-gray-700 flex items-center justify-center text-gray-500"><X size={48} /></div></div>
+                            </div>
+                        </motion.div>
+                        ) : (
+                        <motion.div key="culture" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="bg-gradient-to-br from-[#4ADE80]/10 to-[#06B6D4]/10 border border-[#4ADE80]/50 rounded-3xl p-8 md:p-12 shadow-[0_0_50px_rgba(74,222,128,0.1)]">
+                            <div className="flex flex-col md:flex-row gap-8 items-center">
+                            <div className="flex-1 space-y-4">
+                                <h3 className="text-2xl font-semibold text-white">建立 <GradientText>AIQ 文化</GradientText></h3>
+                                <p className="text-[#94A3B8]">我們植入整套機構運作系統：從<h1 className="text-lg font-semibold text-white mb-2 inline">AI 政策制定 (AI Policy Making)</h1>、倫理規範到工作流重整。<br/><br/><strong className="text-[#4ADE80]">結果：</strong> 政策護航、風險可控、全員主動創新。</p>
+                            </div>
+                            <div className="w-full md:w-1/3 flex justify-center"><div className="w-32 h-32 rounded-full bg-gradient-to-r from-[#4ADE80] to-[#06B6D4] flex items-center justify-center text-[#0B0E14] shadow-lg shadow-[#4ADE80]/40"><Sprout size={48} /></div></div>
+                            </div>
+                        </motion.div>
+                        )}
+                    </AnimatePresence>
+                    </div>
                 </div>
                 </section>
             );
         };
 
-        const TrustSection = () => {
+        const AIQDimensions = () => {
+            const cards = [
+                { icon: BrainCircuit, title: "1. 認知與理解", desc: "理解 AI 的基本原理與邊界，知道何時該用，何時該人工介入。" },
+                { icon: Wand2, title: "2. 工具應用能力", desc: "熟練使用工具完成實際工作，如市場部快速起稿、客服初篩客戶。" },
+                { icon: Scale, title: "3. 倫理與判斷力", desc: "識別偏見、保護數據隱私、負責任地決策，避免 AI 誤用。" },
+                { icon: Zap, title: "4. 創新與流程優化", desc: "主動思考「怎樣用 AI 重塑工作」，設計新的人機協作模式。" }
+            ];
             return (
-                <section id="why-us" className="py-24 bg-[#0B0E14] relative z-10">
+                <section id="framework" className="py-24 bg-[#0B0E14] relative z-10">
+                <div className="container mx-auto px-6 relative z-10">
+                    <SectionHeading subtitle="The Framework" title="未來競爭力的四大重點" />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {cards.map((card, idx) => (
+                        <motion.div key={idx} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: idx * 0.1 }} whileHover={{ y: -5 }} className="group relative bg-white/5 border border-white/10 hover:border-[#4ADE80]/50 rounded-2xl p-8 backdrop-blur-sm transition-all duration-300">
+                        <div className="relative z-10 flex items-start gap-6">
+                            <div className="p-4 rounded-xl bg-white/5 text-[#4ADE80] group-hover:bg-[#4ADE80] group-hover:text-[#0B0E14] transition-colors duration-300"><card.icon size={32} /></div>
+                            <div><h3 className="text-xl font-semibold text-white mb-3 group-hover:text-[#4ADE80] transition-colors">{card.title}</h3><p className="text-[#94A3B8] leading-relaxed">{card.desc}</p></div>
+                        </div>
+                        </motion.div>
+                    ))}
+                    </div>
+                </div>
+                </section>
+            );
+        };
+
+        const GlobalMap = () => {
+            const GraphVisual = () => {
+                const [flowParticles, setFlowParticles] = useState([]);
+                useEffect(() => {
+                    const interval = setInterval(() => {
+                        const newParticle = { id: Date.now(), path: Math.floor(Math.random() * 3), progress: 0 };
+                        setFlowParticles(prev => [...prev, newParticle]);
+                    }, 800);
+                    return () => clearInterval(interval);
+                }, []);
+
+                return (
+                    <div className="relative w-full h-full flex items-center justify-center">
+                        <motion.div animate={{ rotate: 360 }} transition={{ duration: 40, repeat: Infinity, ease: "linear" }} className="absolute w-[80%] h-[80%] border border-dashed border-[#06B6D4]/20 rounded-full" />
+                        <motion.div animate={{ rotate: -360 }} transition={{ duration: 30, repeat: Infinity, ease: "linear" }} className="absolute w-[60%] h-[60%] border border-[#4ADE80]/20 rounded-full" />
+                        <div className="relative z-10 w-24 h-24 bg-[#0B0E14] border-2 border-[#4ADE80] rounded-full flex flex-col items-center justify-center shadow-[0_0_30px_rgba(74,222,128,0.3)]"><div className="font-bold text-white">Yess AI</div><div className="text-xs text-[#4ADE80]">HK HUB</div><span className="absolute top-0 left-0 w-full h-full rounded-full bg-[#4ADE80] animate-ping opacity-20"></span></div>
+                        <div className="absolute top-[10%] left-[50%] -translate-x-1/2 flex flex-col items-center"><div className="w-16 h-16 bg-[#0B0E14] border border-[#06B6D4] rounded-full flex items-center justify-center text-[#06B6D4] font-bold shadow-[0_0_15px_rgba(6,182,212,0.3)] mb-2">UNESCO</div><div className="absolute top-16 left-1/2 w-[2px] h-[calc(50vh-100px)] bg-gradient-to-b from-[#06B6D4]/50 to-transparent origin-top scale-y-[0.6]"></div></div>
+                        <div className="absolute bottom-[20%] left-[10%] flex flex-col items-center"><div className="w-14 h-14 bg-[#0B0E14] border border-blue-400 rounded-full flex items-center justify-center text-blue-400 font-bold shadow-[0_0_15px_rgba(96,165,250,0.3)] mb-2">EU</div></div>
+                        <div className="absolute bottom-[20%] right-[10%] flex flex-col items-center"><div className="w-14 h-14 bg-[#0B0E14] border border-purple-400 rounded-full flex items-center justify-center text-purple-400 font-bold shadow-[0_0_15px_rgba(192,132,252,0.3)] mb-2">OECD</div></div>
+                        <motion.div className="absolute top-[20%] left-[50%] w-2 h-2 bg-[#06B6D4] rounded-full shadow-[0_0_10px_#06B6D4]" animate={{ y: [0, 100], opacity: [1, 0] }} transition={{ duration: 2, repeat: Infinity, ease: "easeIn" }} />
+                        <motion.div className="absolute bottom-[25%] left-[15%] w-2 h-2 bg-blue-400 rounded-full shadow-[0_0_10px_blue]" animate={{ x: [0, 100], y: [0, -50], opacity: [1, 0] }} transition={{ duration: 2.5, repeat: Infinity, ease: "easeIn", delay: 0.5 }} />
+                        <motion.div className="absolute bottom-[25%] right-[15%] w-2 h-2 bg-purple-400 rounded-full shadow-[0_0_10px_purple]" animate={{ x: [0, -100], y: [0, -50], opacity: [1, 0] }} transition={{ duration: 2.5, repeat: Infinity, ease: "easeIn", delay: 1 }} />
+                    </div>
+                );
+            };
+
+            return (
+                <section className="py-24 bg-[#05070a] border-y border-white/5 relative z-10">
                 <div className="container mx-auto px-6">
-                    <SectionHeading subtitle="Why Us" title="香港 AIQ 標準制定者" />
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                    {[
-                        { icon: Trophy, title: "先發優勢", desc: "香港首間系統化 AIQ 夥伴，不僅是服務，更是標準。" },
-                        { icon: ShieldCheck, title: "風險最小化", desc: "對標國際最佳實踐，符合香港合規要求，不做白老鼠。" },
-                        { icon: BarChart3, title: "可衡量成果", desc: "關注採納率與效率提升，而非單純的培訓滿意度。" }
-                    ].map((item, idx) => (
-                        <motion.div key={idx} whileHover={{ y: -5 }} className="p-8 border border-white/10 rounded-2xl bg-gradient-to-b from-white/5 to-transparent">
-                        <item.icon size={40} className="text-[#06B6D4] mb-6" />
-                        <h4 className="text-xl font-semibold text-white mb-3">{item.title}</h4>
-                        <p className="text-[#94A3B8]">{item.desc}</p>
+                    <div className="flex flex-col lg:flex-row items-center gap-16">
+                        <div className="lg:w-1/2">
+                            <div className="flex items-center gap-3 text-[#06B6D4] mb-4"><Globe2 size={24} /><span className="font-semibold tracking-wider uppercase">Global Standards</span></div>
+                            <h2 className="text-4xl font-semibold text-white mb-6">國際標準，香港落地</h2>
+                            <div className="space-y-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="flex flex-col gap-3">
+                                    <div className="w-12 h-12 rounded-full bg-blue-900/30 flex items-center justify-center text-blue-400 shrink-0"><span className="font-semibold">EU</span></div>
+                                    <div><h4 className="text-white font-semibold text-lg">UNESCO & OECD 框架</h4><p className="text-[#94A3B8]">全球權威機構已定義 AI 素養標準。</p></div>
+                                </div>
+                                <div className="flex flex-col gap-3">
+                                    <div className="w-12 h-12 rounded-full bg-[#4ADE80]/20 flex items-center justify-center text-[#4ADE80] shrink-0"><MapPin /></div>
+                                    <div><h4 className="text-white font-semibold text-lg">Yess AI 本地化實踐</h4><p className="text-[#94A3B8]">將國際標準轉化為符合香港教育局政策與商業文化的實戰方案。</p></div>
+                                </div>
+                            </div>
+                            </div>
+                        </div>
+                        <div className="lg:w-1/2 w-full h-[400px] flex justify-center">
+                            <GraphVisual />
+                        </div>
+                    </div>
+                </div>
+                </section>
+            );
+        };
+
+        const Roadmap = () => {
+            const steps = [
+                { icon: ScanSearch, title: "診斷", desc: "15分鐘 AIQ 準備度評估" },
+                { icon: ScrollText, title: "政策", desc: "制定機構使用守則" },
+                { icon: GraduationCap, title: "培訓", desc: "分層能力提升" },
+                { icon: RefreshCcw, title: "重整", desc: "工作流程 AI 化" },
+                { icon: Sprout, title: "文化", desc: "建立內部安全 AI 系統" }
+            ];
+            return (
+                <section className="py-24 bg-[#0B0E14] relative z-10">
+                <div className="container mx-auto px-6">
+                    <SectionHeading subtitle="Roadmap" title="實施路線圖" />
+                    <div className="grid grid-cols-1 md:grid-cols-5 gap-8 mt-16 relative z-10">
+                    {steps.map((step, idx) => (
+                        <motion.div key={idx} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: idx * 0.15 }} className="flex flex-col items-center text-center group">
+                        <div className="w-20 h-20 rounded-2xl bg-[#0B0E14] border border-white/20 group-hover:border-[#4ADE80] flex items-center justify-center mb-6 transition-all duration-300 shadow-lg group-hover:shadow-[#4ADE80]/20 relative">
+                            <div className="absolute -top-3 -right-3 w-8 h-8 bg-[#0B0E14] border border-[#4ADE80] rounded-full flex items-center justify-center text-[#4ADE80] font-semibold text-sm">{idx + 1}</div>
+                            <step.icon size={32} className="text-white group-hover:text-[#4ADE80] transition-colors" />
+                        </div>
+                        <h3 className="text-lg font-semibold text-white mb-2">{step.title}</h3>
+                        <p className="text-[#94A3B8] text-sm">{step.desc}</p>
                         </motion.div>
                     ))}
                     </div>
@@ -571,7 +580,6 @@
             const [simulationData, setSimulationData] = useState(null);
             const [loading, setLoading] = useState(false);
 
-            // Updated Role & Task Database
             const roleTasks = {
                 '學校老師': ['設計一週的教案', '批改 30 份學生作文', '生成測驗卷與標準答案', '撰寫學生評語', '處理家長投訴郵件'],
                 'HR 經理': ['篩選 50+ 份求職簡歷', '撰寫職位招聘廣告 (JD)', '起草員工培訓手冊', '設計年度績效考核表', '分析員工滿意度調查'],
@@ -585,10 +593,7 @@
                 '財務經理': ['現金流預測分析', '生成財務報表摘要', '審核費用報銷單', '稅務合規檢查', '投資回報率 (ROI) 計算']
             };
 
-            // Set default task when role changes
-            useEffect(() => {
-                setTask(roleTasks[role][0]);
-            }, [role]);
+            useEffect(() => { setTask(roleTasks[role][0]); }, [role]);
 
             const handleSimulate = async () => {
                 setLoading(true);
@@ -683,14 +688,350 @@
             );
         };
 
+        const Solutions = () => {
+            const [activeTab, setActiveTab] = useState(0);
+            const tabs = [
+                { id: 0, name: "學校 Schools", icon: School, title: "智慧校園：從合規到賦能", content: "不僅滿足教育局架構。我們協助校方建立安全的 AI 沙盒與政策（管控），並協助申請<h1 class='seo-h1'>學校 AI 課程資助 (School AI Funding)</h1>，讓教師能安心實驗教學創新，學生能掌握未來核心技能（成長），共同打造具備 AIQ 的智慧校園。" },
+                { id: 1, name: "NGO", icon: HeartHandshake, title: "科技與人文共融", content: "在資源受限下實現最大影響力。我們提供合規的數據隱私治理（管控），同時推動<h1 class='seo-h1'>NGO AI 應用 (NGO AI Application)</h1>賦能前線社工利用 AI 自動化繁瑣行政（成長），讓團隊將更多時間與心力回歸到受助者身上。" },
+                { id: 2, name: "中小企 SME", icon: Briefcase, title: "全員創新的增長引擎", content: "超越單純的降本增效。我們協助建立標準化且安全的 AI 工作流（管控），並專注於<h1 class='seo-h1'>中小企 AI 轉型 (SME AI Transformation)</h1>，讓每位員工都能成為利用 AI 解決業務瓶頸的「超級個體」（成長），讓中小企具備大企業的作戰能力。" },
+                { id: 3, name: "大型企業", icon: Building2, title: "治理與轉型並行", content: "從防禦性風控轉向進攻性轉型。我們協助建立企業級私有化模型與治理框架（管控），消除安全隱患，同時推動跨部門的 AI 協作文化（成長），讓創新成為企業的日常 DNA。" },
+            ];
+            return (
+                <section id="solutions" className="py-24 bg-[#05070a] scroll-mt-20">
+                <div className="container mx-auto px-6">
+                    <SectionHeading subtitle="Solutions" title="為您的領域量身打造" />
+                    <div className="flex flex-wrap justify-center gap-4 mb-12">{tabs.map((tab) => <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`px-6 py-3 rounded-full flex items-center gap-2 border ${activeTab === tab.id ? "bg-[#4ADE80]/10 border-[#4ADE80] text-[#4ADE80]" : "bg-transparent border-white/10 text-[#94A3B8]"}`}>{React.createElement(tab.icon, { size: 18 })} {tab.name}</button>)}</div>
+                    <div className="max-w-4xl mx-auto bg-white/5 border border-white/10 rounded-3xl p-10 text-center"><h3 className="text-3xl font-semibold text-white mb-6">{tabs[activeTab].title}</h3><p className="text-xl text-[#94A3B8]" dangerouslySetInnerHTML={{__html: tabs[activeTab].content}}></p></div>
+                </div>
+                </section>
+            );
+        };
+
+        const TrustSection = () => {
+            return (
+                <section id="why-us" className="py-24 bg-[#0B0E14] relative z-10">
+                <div className="container mx-auto px-6">
+                    <SectionHeading subtitle="Why Us" title="香港 AIQ 標準制定者" />
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    {[
+                        { icon: Trophy, title: "先發優勢", desc: "香港首間系統化 AIQ 夥伴，不僅是服務，更是標準。" },
+                        { icon: ShieldCheck, title: "風險最小化", desc: "對標國際最佳實踐，符合香港合規要求，不做白老鼠。" },
+                        { icon: BarChart3, title: "可衡量成果", desc: "關注採納率與效率提升，而非單純的培訓滿意度。" }
+                    ].map((item, idx) => (
+                        <motion.div key={idx} whileHover={{ y: -5 }} className="p-8 border border-white/10 rounded-2xl bg-gradient-to-b from-white/5 to-transparent">
+                        <item.icon size={40} className="text-[#06B6D4] mb-6" />
+                        <h4 className="text-xl font-semibold text-white mb-3">{item.title}</h4>
+                        <p className="text-[#94A3B8]">{item.desc}</p>
+                        </motion.div>
+                    ))}
+                    </div>
+                </div>
+                </section>
+            );
+        };
+
+        const AssessmentModal = ({ isOpen, onClose, initialEmail }) => {
+            const [step, setStep] = useState(1);
+            const [formData, setFormData] = useState({
+                name: '', email: '', businessType: '', role: '',
+                aiUsage: [], // Multi-select
+                frequency: '',
+                challenges: [], // Multi-select
+                awareness: '' // New field for awareness question
+            });
+            const [result, setResult] = useState(null);
+
+            // Updated Options
+            const AI_TOOLS = [
+                'ChatGPT / Claude', 'Midjourney / Stable Diffusion', 'Microsoft Copilot', 
+                'Notion AI', 'Google Gemini', 'Poe', 'Perplexity', 'Jasper', 
+                'Canva Magic / Adobe Firefly', 'GitHub Copilot', '公司內部 AI 系統', '完全沒有使用'
+            ];
+            const CHALLENGES = ['缺乏相關技能', '擔心資料外洩', '沒有預算', '管理層不支持', '不知道從何開始'];
+            
+            useEffect(() => {
+                if (isOpen && initialEmail) setFormData(prev => ({ ...prev, email: initialEmail }));
+            }, [isOpen, initialEmail]);
+
+            const handleChange = (field, value) => setFormData(prev => ({ ...prev, [field]: value }));
+            
+            const toggleSelection = (field, item) => {
+                setFormData(prev => {
+                    const list = prev[field] || [];
+                    if (list.includes(item)) return { ...prev, [field]: list.filter(i => i !== item) };
+                    return { ...prev, [field]: [...list, item] };
+                });
+            };
+
+            const calculateResult = () => {
+                let score = 50; // Base score
+                
+                // Frequency Logic
+                if (formData.frequency === 'daily') score += 20;
+                else if (formData.frequency === 'weekly') score += 10;
+                else if (formData.frequency === 'rarely') score -= 10;
+
+                // Tools Logic
+                if (formData.aiUsage.includes('完全沒有使用')) score -= 20;
+                else score += (formData.aiUsage.length * 5);
+
+                // Challenge Penalty
+                if (formData.challenges.includes('擔心資料外洩')) score -= 5; // Specific risk penalty
+                
+                // Awareness Penalty (Managers)
+                if (['management', 'middle'].includes(formData.role)) {
+                     if (formData.awareness === 'none') score -= 10;
+                     if (formData.awareness === 'full') score += 10;
+                }
+
+                // Clamp
+                score = Math.max(10, Math.min(95, score));
+
+                let grade = 'C';
+                let urgency = '中度 (Moderate)';
+                let summary = '';
+
+                if (score >= 80) {
+                    grade = 'A';
+                    urgency = '優化階段 (Optimization)';
+                    summary = '您的基礎良好，已具備一定的 AIQ。下一步是建立系統化的治理框架，確保全機構的一致性。';
+                } else if (score >= 60) {
+                    grade = 'B';
+                    urgency = '加速階段 (Acceleration)';
+                    summary = '您已有使用經驗，但可能缺乏統一策略。建議針對「流程重整」進行深入規劃。';
+                } else if (score >= 40) {
+                    grade = 'C';
+                    urgency = '警戒階段 (Warning)';
+                    summary = '您處於 AI 轉型的起步階段。缺乏明確指引可能導致效率低落或合規風險。';
+                } else {
+                    grade = 'D';
+                    urgency = '極度緊急 (Critical)';
+                    summary = '您的機構在 AIQ 準備度上嚴重落後。競爭對手可能已在利用 AI 降本增效，建議立即啟動基礎培訓。';
+                }
+
+                setResult({ score, grade, urgency, summary, timeToQualify: '3-6 個月' });
+                setStep(2);
+            };
+
+            // Updated to redirect to WhatsApp
+            const handleSendResult = () => {
+                const message = `你好 Yess AI 團隊，\n\n我完成了 AIQ 初步評估，結果如下：\n\n姓名: ${formData.name}\nEmail: ${formData.email}\n機構: ${formData.businessType}\n職位: ${formData.role}\n頻率: ${formData.frequency}\n工具: ${formData.aiUsage.join(', ')}\n挑戰: ${formData.challenges.join(', ')}\n管理層AI意識: ${formData.awareness}\n\n-- 評估結果 --\n分數: ${result.score}\n等級: ${result.grade}\n急迫性: ${result.urgency}`;
+                const encodedMessage = encodeURIComponent(message);
+                window.open(`https://wa.me/85294392236?text=${encodedMessage}`, '_blank');
+                onClose();
+            };
+
+            if (!isOpen) return null;
+
+            return (
+                <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+                    <motion.div key='backdrop' initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} className="absolute inset-0 bg-black/80 backdrop-blur-sm" />
+                    <motion.div key='content' initial={{ scale: 0.9, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0, y: 20 }} className="relative bg-[#0B0E14] border border-[#4ADE80]/30 w-full max-w-3xl rounded-3xl overflow-hidden shadow-[0_0_50px_rgba(74,222,128,0.15)] flex flex-col max-h-[90vh]">
+                        <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-white z-10"><X size={24} /></button>
+                        
+                        {step === 1 ? (
+                            <div className="flex-1 overflow-y-auto p-8 md:p-10">
+                                <div className="flex items-center gap-3 mb-6">
+                                    <div className="p-3 bg-[#4ADE80]/10 rounded-xl text-[#4ADE80]"><ShieldCheck size={28} /></div>
+                                    <div><h3 className="text-2xl font-semibold text-white">AIQ 深度診斷 (2 min)</h3><p className="text-[#94A3B8] text-sm">讓我們更精準地了解您的 AI 成熟度。</p></div>
+                                </div>
+                                
+                                <div className="space-y-6">
+                                    {/* Section 1: Profile */}
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div><label className="text-xs text-[#94A3B8] mb-1 block">您的姓名</label><input type="text" className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#4ADE80]" onChange={e => handleChange('name', e.target.value)} /></div>
+                                        <div><label className="text-xs text-[#94A3B8] mb-1 block">電郵地址</label><input type="email" value={formData.email} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#4ADE80]" onChange={e => handleChange('email', e.target.value)} /></div>
+                                        <div>
+                                            <label className="text-xs text-[#94A3B8] mb-1 block">機構類型</label>
+                                            <select className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#4ADE80]" onChange={e => handleChange('businessType', e.target.value)}>
+                                                <option value="">請選擇...</option>
+                                                <option value="school">學校 (K12/Higher Ed)</option>
+                                                <option value="ngo">非牟利機構 (NGO)</option>
+                                                <option value="sme">中小企 (SME)</option>
+                                                <option value="enterprise">大型企業 (Enterprise)</option>
+                                                <option value="startup">初創企業 (Startup)</option>
+                                                <option value="government">政府/公共機構</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label className="text-xs text-[#94A3B8] mb-1 block">您的職位</label>
+                                            <select className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#4ADE80]" onChange={e => handleChange('role', e.target.value)}>
+                                                <option value="">請選擇...</option>
+                                                <option value="management">管理層 / 校長 / 董事</option>
+                                                <option value="middle">部門主管 / 主任</option>
+                                                <option value="staff">前線員工 / 教師</option>
+                                                <option value="it">IT / 技術支援</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    
+                                    {/* Conditional Question for Managers */}
+                                    {['management', 'middle'].includes(formData.role) && (
+                                        <div className="p-4 bg-[#06B6D4]/10 rounded-xl border border-[#06B6D4]/30">
+                                            <label className="text-sm font-bold text-[#06B6D4] mb-3 block flex items-center gap-2">
+                                                <Users size={16} /> 
+                                                管理層專屬：您是否清楚員工的 AI 使用狀況 (人數/工具/頻率)？
+                                            </label>
+                                            <div className="grid grid-cols-3 gap-3">
+                                                {[{l:'完全掌握', v:'full'}, {l:'部分了解', v:'partial'}, {l:'完全不清楚', v:'none'}].map(opt => (
+                                                    <button
+                                                        key={opt.v}
+                                                        onClick={() => handleChange('awareness', opt.v)}
+                                                        className={`py-2 rounded-lg text-sm border transition-all ${formData.awareness === opt.v ? 'bg-[#06B6D4] text-[#0B0E14] border-[#06B6D4] font-bold' : 'bg-black/20 border-white/10 text-gray-400 hover:bg-white/10'}`}
+                                                    >
+                                                        {opt.l}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Section 2: Usage */}
+                                    <div>
+                                        <label className="text-xs text-[#94A3B8] mb-2 block">目前使用的 AI 工具 (可多選)</label>
+                                        <div className="flex flex-wrap gap-2">
+                                            {AI_TOOLS.map(tool => (
+                                                <button 
+                                                    key={tool}
+                                                    onClick={() => toggleSelection('aiUsage', tool)}
+                                                    className={`px-3 py-2 rounded-lg text-sm border transition-all ${formData.aiUsage.includes(tool) ? 'bg-[#4ADE80]/20 border-[#4ADE80] text-[#4ADE80]' : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10'}`}
+                                                >
+                                                    {tool}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label className="text-xs text-[#94A3B8] mb-2 block">AI 使用頻率</label>
+                                        <div className="grid grid-cols-3 gap-3">
+                                            {[{l:'幾乎每天',v:'daily'}, {l:'每週幾次',v:'weekly'}, {l:'很少/從不',v:'rarely'}].map(opt => (
+                                                <button 
+                                                    key={opt.v}
+                                                    onClick={() => handleChange('frequency', opt.v)}
+                                                    className={`py-3 rounded-xl text-sm border transition-all ${formData.frequency === opt.v ? 'bg-[#06B6D4]/20 border-[#06B6D4] text-[#06B6D4]' : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10'}`}
+                                                >
+                                                    {opt.l}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    {/* Section 3: Challenges */}
+                                    <div>
+                                        <label className="text-xs text-[#94A3B8] mb-2 block">目前最大的阻礙 (可多選)</label>
+                                        <div className="flex flex-wrap gap-2">
+                                            {CHALLENGES.map(c => (
+                                                <button 
+                                                    key={c}
+                                                    onClick={() => toggleSelection('challenges', c)}
+                                                    className={`px-3 py-2 rounded-lg text-sm border transition-all ${formData.challenges.includes(c) ? 'bg-red-500/20 border-red-500 text-red-400' : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10'}`}
+                                                >
+                                                    {c}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    <ButtonPrimary onClick={calculateResult} className="w-full justify-center mt-4" icon={ScanSearch} disabled={!formData.email || !formData.businessType}>查看詳細分析</ButtonPrimary>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="p-8 md:p-10 text-center relative overflow-hidden h-full flex flex-col justify-center">
+                                <div className={`absolute inset-0 opacity-10 bg-gradient-to-b ${['A','B'].includes(result.grade) ? 'from-[#4ADE80] to-transparent' : 'from-red-500 to-transparent'}`} />
+                                <div className="relative z-10">
+                                    <h3 className="text-xl font-semibold text-[#94A3B8] mb-6 uppercase tracking-widest">Assessment Report</h3>
+                                    <div className="flex justify-center items-end gap-2 mb-6"><div className="text-7xl font-semibold text-white leading-none">{result.score}</div><div className="text-xl text-[#94A3B8] mb-2">/ 100</div></div>
+                                    
+                                    <div className="grid grid-cols-2 gap-4 mb-6">
+                                        <div className="bg-white/5 rounded-2xl p-4 border border-white/10">
+                                            <div className="text-xs text-[#94A3B8] uppercase tracking-wider mb-1">AIQ 等級</div>
+                                            <div className={`text-4xl font-semibold ${['A','B'].includes(result.grade) ? 'text-[#4ADE80]' : 'text-red-400'}`}>{result.grade}</div>
+                                        </div>
+                                        <div className="bg-white/5 rounded-2xl p-4 border border-white/10">
+                                            <div className="text-xs text-[#94A3B8] uppercase tracking-wider mb-1">行動急迫性</div>
+                                            <div className="text-lg font-semibold text-white flex items-center justify-center h-full pb-2 gap-2">
+                                                {!['A'].includes(result.grade) && <AlertTriangle size={16} className="text-yellow-500"/>}
+                                                {result.urgency.split(' ')[0]}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* New: AI-RQ Explanation */}
+                                    <div className="mb-6 p-4 bg-white/5 rounded-xl border border-white/10 text-left text-xs text-[#94A3B8] leading-relaxed">
+                                        <h4 className="text-white font-bold mb-2 flex items-center gap-2 text-sm"><Info size={14} className="text-[#4ADE80]"/> 評分標準：AI Readiness Quotient (AI-RQ)</h4>
+                                        <p className="mb-2">此評分基於 UNESCO 認可的組織準備度框架，評估四大維度：</p>
+                                        <ul className="grid grid-cols-2 gap-x-2 gap-y-1 mb-3 list-disc pl-4">
+                                            <li><span className="text-white">Strategy (策略)</span>: 願景與影響力</li>
+                                            <li><span className="text-white">Execution (執行)</span>: 變革與人才</li>
+                                            <li><span className="text-white">Innovation (創新)</span>: 實驗與顛覆</li>
+                                            <li><span className="text-white">Enabling (賦能)</span>: 數據與倫理</li>
+                                        </ul>
+                                        <p className="text-[#06B6D4]">目標分數為 64+ (AI-First)。低於 32 分代表存在重大落差 (Major Gaps)，急需建立 AIQ 系統以避免被邊緣化。</p>
+                                    </div>
+
+                                    <div className="bg-white/5 rounded-2xl p-6 border border-white/10 mb-8 text-left"><p className="text-white mb-4 leading-relaxed">{result.summary}</p></div>
+                                    <ButtonPrimary className="w-full justify-center" onClick={handleSendResult} icon={CalendarCheck2}>獲取完整報告與專家建議</ButtonPrimary>
+                                </div>
+                            </div>
+                        )}
+                    </motion.div>
+                </div>
+            );
+        };
+
+        const AboutPage = ({ onOpenAssessment }) => {
+            const stats = [
+                { value: "70+", label: "國際AI專案經驗", desc: "跨國視野，本地實踐" }, 
+                { value: "40-70%", label: "自動化覆蓋率", desc: "釋放人力，專注核心價值" }, 
+                { value: "20-35%", label: "採用度提升", desc: "治理+培訓雙管齊下" }, 
+            ];
+            return (
+                <div className="pt-32 pb-20 min-h-screen">
+                    <div className="container mx-auto px-6">
+                        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center max-w-4xl mx-auto mb-24">
+                            <div className="inline-block px-4 py-1 mb-6 rounded-full border border-[#4ADE80]/30 bg-[#4ADE80]/5 text-[#4ADE80] text-sm font-medium tracking-wider uppercase">關於我們</div>
+                            <h1 className="text-5xl md:text-7xl font-semibold text-white mb-8 leading-tight">We Work <GradientText><Typewriter words={["Smarter.", "Sharper.", "Strategically."]} /></GradientText></h1>
+                            <p className="text-lg md:text-xl text-[#94A3B8] leading-relaxed mb-12 font-light">我們以香港為總部，成立於 2024。小團隊，大志向；<br className="hidden md:block"/>憑 200+ 全球專案經驗，把 AI 由概念帶到生產，<span className="text-white font-semibold">快、準、可維護。</span></p>
+                            <div className="flex flex-col sm:flex-row gap-6 justify-center">
+                                <ButtonPrimary onClick={() => window.open('https://wa.me/85294392236', '_blank')} icon={WhatsappIcon}>免費諮詢</ButtonPrimary>
+                                <ButtonSecondary onClick={() => onOpenAssessment('')} icon={Zap}>AIQ 快速評估</ButtonSecondary>
+                            </div>
+                        </motion.div>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-24">{stats.map((stat, idx) => (
+                            <motion.div key={idx} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} className="bg-white/5 border border-white/10 rounded-2xl p-6 text-center hover:bg-white/10 transition-all">
+                                <div className="text-3xl md:text-4xl font-bold text-white mb-2">{stat.value}</div>
+                                <div className="text-base font-semibold text-white mb-2">{stat.label}</div>
+                                <div className="text-xs text-[#94A3B8] font-light">{stat.desc}</div>
+                            </motion.div>
+                        ))}</div>
+                        <div className="max-w-3xl mx-auto text-center">
+                            <h2 className="text-3xl font-bold text-white mb-6">不僅是技術供應商，更是您的<br/><GradientText>AI 文化架構師</GradientText></h2>
+                            <p className="text-[#94A3B8] leading-relaxed text-lg mb-8">在 Yess AI，我們深知香港企業與教育機構面臨的獨特挑戰：既要擁抱創新，又要嚴守合規與數據隱私。我們的創始團隊結合了國際頂尖科技公司的實戰經驗與對香港本地文化的深刻理解。</p>
+                            <div className="flex justify-center gap-4 items-center border-t border-white/10 pt-8">
+                                <div className="w-12 h-12 rounded-full bg-[#06B6D4]/20 flex items-center justify-center text-[#06B6D4]"><Globe2 /></div>
+                                <div className="text-left"><div className="text-white font-bold">立足香港，放眼全球</div><div className="text-sm text-[#94A3B8]">總部設於香港，服務網絡覆蓋亞太區</div></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const PrivacyPage = () => (
+            <div className="pt-32 pb-20 min-h-screen"><div className="container mx-auto px-6 max-w-3xl text-white"><h1 className="text-4xl font-bold mb-8">隱私政策</h1><div className="space-y-6 text-[#94A3B8]"><p>生效日期：2025年1月1日</p><p>Yess AI 非常重視您的隱私。本政策說明我們如何收集、使用和保護您的個人資料。</p><h2 className="text-xl text-white font-semibold">1. 資料收集</h2><p>我們僅收集您在評估表單或訂閱中主動提供的資料（如姓名、電郵、職位）。</p><h2 className="text-xl text-white font-semibold">2. 資料使用</h2><p>您的資料僅用於提供評估報告、聯絡回訪及發送電子報。我們不會將資料出售給第三方。</p><h2 className="text-xl text-white font-semibold">3. 資料安全</h2><p>我們採用符合行業標準的安全措施來保護您的數據。</p></div></div></div>
+        );
+
+        const TermsPage = () => (
+            <div className="pt-32 pb-20 min-h-screen"><div className="container mx-auto px-6 max-w-3xl text-white"><h1 className="text-4xl font-bold mb-8">服務條款</h1><div className="space-y-6 text-[#94A3B8]"><p>歡迎使用 Yess AI 網站。使用本網站即表示您同意以下條款。</p><h2 className="text-xl text-white font-semibold">1. 服務內容</h2><p>本網站提供的 AIQ 評估結果僅供參考，不構成正式的法律或商業建議。</p><h2 className="text-xl text-white font-semibold">2. 知識產權</h2><p>本網站的所有內容（文字、圖像、代碼）均歸 Yess AI 所有。</p><h2 className="text-xl text-white font-semibold">3. 免責聲明</h2><p>Yess AI 不對因使用本網站資訊而導致的任何直接或間接損失負責。</p></div></div></div>
+        );
+
         const Footer = ({ onOpenAssessment, onNavClick }) => {
             const [email, setEmail] = useState("");
             const [subscribed, setSubscribed] = useState(false);
 
             const handleSubscribe = () => {
                 if (!email) return;
-                // Note: To connect to Google Sheets properly without backend, you need a Google Apps Script Web App.
-                // Since we cannot deploy backend code here, we simulate success.
                 console.log("Subscribe email:", email);
                 setSubscribed(true);
                 setTimeout(() => setSubscribed(false), 3000);
@@ -703,7 +1044,9 @@
                     <div className="container mx-auto px-6 relative z-10">
                         <div className="flex flex-col md:flex-row justify-between items-start gap-12 mb-16">
                             <div className="max-w-md">
-                                <div className="text-3xl font-semibold tracking-tight mb-6 flex items-center gap-1"><span className="text-white">yess</span><span className="text-[#06B6D4]">!</span></div>
+                                <div className="text-3xl font-semibold tracking-tight mb-6 flex items-center gap-1 cursor-pointer" onClick={() => onNavClick('home')}>
+                                    <img src="logo.png" alt="Yess AI" className="h-10 w-auto object-contain" />
+                                </div>
                                 <h3 className="text-2xl font-semibold text-white mb-6">識用AI未夠，<br/>你要有<span className="text-[#4ADE80]">系統性地使用</span>！</h3>
                                 <div className="flex gap-4">
                                     <a href="mailto:info@yessai.hk" className="p-3 bg-white/5 rounded-full text-white hover:bg-[#4ADE80] hover:text-black transition-colors"><Mail size={20} /></a>
@@ -809,41 +1152,32 @@
             const [chatInput, setChatInput] = useState("");
             const [messages, setMessages] = useState([{ role: 'assistant', text: '您好！我是 Yess AI 的智能顧問。請選擇下方主題，或直接輸入您的問題：' }]);
             const [loading, setLoading] = useState(false);
-            const [currentMenu, setCurrentMenu] = useState('main'); // 'main', 'about', 'industry', 'process', 'importance', 'chat'
+            const [currentMenu, setCurrentMenu] = useState('main'); 
 
-            // Define Chatbot Categories and Questions
             const CHAT_CATEGORIES = [
                 {
                     id: 'about',
                     label: '關於 Yess AI 與 AIQ 概念',
                     questions: [
-                        { q: '請問 Yess AI 的主要服務是什麼？', a: '你好！很高興為你解答。簡單來說，市面上許多課程僅教授「如何使用工具」（例如編寫 Prompt），但 Yess AI 專注於 「AIQ 實施與文化整合 (AIQ Implementation & Cultural Integration)」 。我們不僅教授技能，更協助貴機構建立完整的 AIQ 文化，涵蓋政策制定、工作流程重整及倫理規範 。我們的目標是讓你的機構不僅懂得使用 AI，更能負責任、有系統地應用它 。' },
-                        { q: 'AIQ 是什麼？它與我們常說的 IQ 有分別嗎？', a: '問得好！如果 IQ 衡量的是傳統的認知能力，那麼 AIQ (人工智能商數) 衡量的就是你在 AI 時代中，與 AI 系統協作、理解及應用的能力 。根據 UNESCO 與 OECD 的國際標準，AIQ 包含四大核心維度 ：\n\n認知： 理解 AI 的能力邊界與局限 。\n工具： 熟練運用 AI 工具優化流程 。\n倫理： 具備判斷力，知道何時恰當使用 AI 並保護隱私 。\n創新： 主動重新設計工作方式以發揮 AI 優勢 。這正是現代職場成功的新指標 。' },
-                        { q: '我們公司已經有員工在使用 ChatGPT，還需要 AIQ 培訓嗎？', a: '其實懂得使用 ChatGPT 並不等於擁有 AIQ 。傳統培訓僅教授工具操作，若缺乏統一的 政策 (Policy) 與 倫理判斷 (Ethics)，員工各自使用容易衍生風險（如資料外洩） 。Yess AI 協助你進行的是 系統化整合：從評估、制定守則到流程重整，確保全公司在「同一標準」下安全、有效地應用 AI 。' }
+                        { q: '請問 Yess AI 的主要服務是什麼？', a: '你好！很高興為你解答。簡單來說，市面上許多課程僅教授「如何使用工具」，但 Yess AI 專注於「AIQ 實施與文化整合」。我們不僅教授技能，更協助貴機構建立完整的 AIQ 文化。' },
+                        { q: 'AIQ 是什麼？它與我們常說的 IQ 有分別嗎？', a: '問得好！如果 IQ 衡量的是傳統的認知能力，那麼 AIQ (人工智能商數) 衡量的就是你在 AI 時代中，與 AI 系統協作、理解及應用的能力。' },
                     ]
                 },
                 {
                     id: 'industry',
                     label: '不同行業的應用 (學校 / NGO / SME)',
                     questions: [
-                        { q: '我來自學校，你們的方案符合教育局的要求嗎？', a: '絕對符合！我們了解教育局已將 AI 素養納入課程框架 。我們不僅協助學校滿足新課程要求及申請資助，更致力於建立 全校性的 AI 應用文化 。對於校長，我們協助建立符合國際標準（如 UNESCO）的校本政策 ；對於教師，我們著重於如何運用 AI 減輕行政工作，賦能前線教師 。' },
-                        { q: '我是 NGO 負責人，推行 AIQ 對我們有什麼具體幫助？', a: '營運 NGO 最重視的是倫理與資源效益。我們協助 NGO 利用 AI 提升服務效能與覆蓋面，同時確保堅守機構的價值觀與倫理底線 。具體而言，我們能讓你的團隊既懂得運用 AI 撰寫撥款申請 (Funding Proposal) 或整理數據，又懂得保護受助人隱私，成為一個負責任的數位化機構 。' },
-                        { q: '中小企 (SME) 資源有限，這套系統適合我們嗎？', a: '當然適合！中小企最講求成本效益。我們協助你將 AI 深入日常工作流程，讓工作更快速、精準，直接降低營運成本並提升效率 。此外，我們採用 模組化設計，建議由 小型試點 (Pilot) 開始，無需一開始就進行大規模轉型，風險極低且能快速見證成效 。' }
+                        { q: '我來自學校，你們的方案符合教育局的要求嗎？', a: '絕對符合！我們了解教育局已將 AI 素養納入課程框架 。我們不僅協助學校滿足新課程要求及申請資助，更致力於建立 全校性的 AI 應用文化 。' },
+                        { q: '我是 NGO 負責人，推行 AIQ 對我們有什麼具體幫助？', a: '營運 NGO 最重視的是倫理與資源效益。我們協助 NGO 利用 AI 提升服務效能與覆蓋面，同時確保堅守機構的價值觀與倫理底線 。' },
+                        { q: '中小企 (SME) 資源有限，這套系統適合我們嗎？', a: '當然適合！我們協助你將 AI 深入日常工作流程，讓工作更快速、精準，直接降低營運成本並提升效率 。' }
                     ]
                 },
                 {
                     id: 'process',
                     label: '實施流程與下一步',
                     questions: [
-                        { q: '推行這套系統的過程是怎樣的？', a: '請不用擔心，我們有一套清晰的 「五大支柱」 實施方案 ：\n\n評估 (Diagnosis)： 診斷機構目前的 AI 準備度與缺口 。\n政策 (Policy)： 制定使用原則與合規框架 。\n培訓 (Training)： 針對領導層與執行層提供分層培訓 。\n流程 (Process)： 重整工作流程，設計人機協作的新模式 。\n文化 (Culture)： 推動內部倡導與持續優化，確保落實 。' },
-                        { q: '我有興趣，第一步該怎麼做？', a: '最快速的方法是預約一個 15 分鐘的免費 AIQ 準備度評估 。只需一杯咖啡的時間，我們就能協助診斷貴機構的現況與優先項目 。此外，我們亦提供 8-12 週的概念驗證 (POC) 試點計畫，讓你親眼見證 AIQ 落實的實際成效 。' }
-                    ]
-                },
-                {
-                    id: 'importance',
-                    label: '為什麼推行 AIQ 如此重要？',
-                    questions: [
-                        { q: '為什麼現在推行 AIQ 如此重要？', a: '根據分析，推行 AIQ 是機構未來生存的關鍵：\n1. 填補「政策」與「實踐」的缺口：將宏觀政策轉化為實際操作指引。\n2. 風險管理與倫理合規：避免誤用，建立護城河。\n3. 提升效率與競爭力：流程優化，時間節省。\n4. 與國際標準接軌：對標 UNESCO/OECD。\n5. 建立可持續的機構文化：內化能力，長遠價值。' }
+                        { q: '推行這套系統的過程是怎樣的？', a: '我們有一套清晰的「五大支柱」實施方案：評估 (Diagnosis)、政策 (Policy)、培訓 (Training)、流程 (Process)、文化 (Culture)。' },
+                        { q: '我有興趣，第一步該怎麼做？', a: '最快速的方法是預約一個 15 分鐘的免費 AIQ 準備度評估 。只需一杯咖啡的時間，我們就能協助診斷貴機構的現況與優先項目 。' }
                     ]
                 }
             ];
@@ -854,25 +1188,14 @@
                 setMessages(prev => [...prev, { role: 'user', text: userMsg }]);
                 setChatInput("");
                 setLoading(true);
-                // Use the FAQ_DATABASE in the prompt for manual queries
                 const prompt = `Question: "${userMsg}"`;
                 const reply = await callGemini(prompt, FAQ_DATABASE); 
                 setMessages(prev => [...prev, { role: 'assistant', text: reply }]);
                 setLoading(false);
             };
 
-            const handleCategoryClick = (catId) => {
-                setCurrentMenu(catId);
-            };
-
-            const handleQuestionClick = (questionObj) => {
-                setMessages(prev => [
-                    ...prev, 
-                    { role: 'user', text: questionObj.q },
-                    { role: 'assistant', text: questionObj.a }
-                ]);
-                // Don't reset menu immediately so they can ask more, or maybe show 'back' option
-            };
+            const handleCategoryClick = (catId) => { setCurrentMenu(catId); };
+            const handleQuestionClick = (q) => { setMessages(prev => [...prev, { role: 'user', text: q.q }, { role: 'assistant', text: q.a }]); };
 
             return (
                 <div className="fixed bottom-8 right-8 z-[40]">
@@ -891,8 +1214,6 @@
                                         </div>
                                     ))}
                                     {loading && <div className="flex justify-start"><div className="bg-white/10 p-3 rounded-xl rounded-tl-none flex items-center gap-2"><Loader2 size={14} className="animate-spin text-[#4ADE80]" /><span className="text-xs text-gray-400">Thinking...</span></div></div>}
-                                    
-                                    {/* Chatbot Menu Options */}
                                     <div className="pt-2 space-y-2">
                                         {currentMenu === 'main' ? (
                                             <div className="grid grid-cols-1 gap-2">
@@ -944,7 +1265,6 @@
         };
 
         // --- Main App Structure ---
-        // Simplified for this snippet, insert other sections (Hero, HookSection, etc) as defined previously
         const App = () => {
             const [assessmentOpen, setAssessmentOpen] = useState(false);
             const [initialEmail, setInitialEmail] = useState('');
@@ -975,32 +1295,38 @@
             };
             // --- ROUTING LOGIC END ---
 
-            return React.createElement('div', { className: "bg-[#0B0E14] min-h-screen text-white font-sans selection:bg-[#4ADE80] selection:text-[#0B0E14]" }, [
-                React.createElement(Spotlight),
-                React.createElement(Navbar, { onOpenAssessment: handleOpenAssessment, onViewChange: handleNavClick }),
-                React.createElement(AssessmentModal, { isOpen: assessmentOpen, onClose: () => setAssessmentOpen(false), initialEmail }),
-                React.createElement('main', {}, 
-                    currentView === 'home' ? [
-                        React.createElement(Hero, { onOpenAssessment: handleOpenAssessment, onNavClick: handleNavClick }),
-                        React.createElement(HookSection),
-                        React.createElement(AIQDimensions),
-                        React.createElement(GlobalMap),
-                        React.createElement(Roadmap),
-                        React.createElement(AIWorkflowSimulator),
-                        React.createElement(Solutions),
-                        React.createElement(TrustSection)
-                    ] : 
-                    currentView === 'about' ? React.createElement(AboutPage, { onOpenAssessment: handleOpenAssessment }) :
-                    currentView === 'privacy' ? React.createElement(PrivacyPage) :
-                    currentView === 'terms' ? React.createElement(TermsPage) : null
-                ),
-                React.createElement(Footer, { onOpenAssessment: handleOpenAssessment, onNavClick: handleNavClick }),
-                React.createElement(FloatingPulse)
-            ]);
+            return (
+                <div className="bg-[#0B0E14] min-h-screen text-white font-sans selection:bg-[#4ADE80] selection:text-[#0B0E14]">
+                    <Spotlight />
+                    <Navbar onOpenAssessment={handleOpenAssessment} onViewChange={handleNavClick} />
+                    <AssessmentModal isOpen={assessmentOpen} onClose={() => setAssessmentOpen(false)} initialEmail={initialEmail} />
+                    
+                    <main>
+                        {currentView === 'home' ? (
+                            <>
+                                <Hero onOpenAssessment={handleOpenAssessment} onNavClick={handleNavClick} />
+                                <HookSection />
+                                <AIQDimensions />
+                                <GlobalMap />
+                                <Roadmap />
+                                <AIWorkflowSimulator />
+                                <Solutions />
+                                <TrustSection />
+                            </>
+                        ) : 
+                        currentView === 'about' ? <AboutPage onOpenAssessment={handleOpenAssessment} /> :
+                        currentView === 'privacy' ? <PrivacyPage /> :
+                        currentView === 'terms' ? <TermsPage /> : null
+                        }
+                    </main>
+                    <Footer onOpenAssessment={handleOpenAssessment} onNavClick={handleNavClick} />
+                    <FloatingPulse />
+                </div>
+            );
         };
 
         const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(React.createElement(App));
+        root.render(<App />);
     </script>
 </body>
 </html>
